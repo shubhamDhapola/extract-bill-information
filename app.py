@@ -5,7 +5,7 @@ from io import BytesIO
 
 
 # Helper function to extract fields by finding markers in text
-def extract_field(text, field_name, end_marker="\n"):
+def extract_field_enter(text, field_name, end_marker="\n"):
     try:
         start = text.index(field_name) + len(field_name)
         end = text.index(end_marker, start)
@@ -18,10 +18,23 @@ def extract_field(text, field_name, end_marker="\n"):
         return None
 
 
+def extract_field(text, field_name):
+    try:
+        start = text.index(field_name) + len(field_name)
+        # Get the substring starting right after field_name
+        remaining_text = text[start:].strip()
+
+        # Split remaining text by whitespace and get the first word
+        first_word = remaining_text.split()[0]
+        return first_word
+    except (ValueError, IndexError):
+        return None
+
+
 # Helper function to check for multiple possible field names (like "Ship to:" or "Shipping address:")
 def extract_field_multiple(text, field_names, end_marker="\n"):
     for field_name in field_names:
-        result = extract_field(text, field_name, end_marker)
+        result = extract_field_enter(text, field_name, end_marker)
         if result:
             return result
     return None
@@ -41,7 +54,7 @@ def extract_bill_data(pdf_file):
                                                               end_marker="Phone"),
         "Order ID:": extract_field(text, "Order ID:"),
         "Phone:": extract_field(text, "Phone :"),
-        "Seller Name:": extract_field(text, "Seller Name:"),
+        "Seller Name:": extract_field_enter(text, "Seller Name:"),
         "SKU:": extract_field(text, "SKU:")
     }
 
